@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flores Amarillas para Alizon 🌻</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ============ BASE ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #0a0505;
+    color: #fff;
+    overflow: hidden;              /* Bloquea scroll hasta descifrar el PIN */
+  }
+  body.entered {
+    overflow-y: auto;              /* Habilita scroll tras validar el PIN */
+  }
+
+  /* ============ WELCOME (CAPA DE ACCESO CON PIN) ============ */
+  .welcome {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, #2a1a08 0%, #0a0505 70%);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+    z-index: 999;
+  }
+  .welcome.hidden {
+    opacity: 0;
+    transform: scale(1.08);
+    pointer-events: none;
+  }
+
+  .welcome-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .welcome-bg img {
+    position: absolute;
+    border-radius: 10px;
+    object-fit: cover;
+    opacity: 0.55;
+    filter: blur(0.5px) brightness(0.75) sepia(0.35) saturate(1.4);
+    animation: welcomeFloat 12s ease-in-out infinite;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .welcome-bg img:nth-child(1) { top: 8%;  left: 5%;  width: 18vw; height: 24vh; animation-delay: 0s;    max-width: 180px; max-height: 240px; }
+  .welcome-bg img:nth-child(2) { top: 14%; right: 8%; width: 16vw; height: 20vh; animation-delay: -3s;   max-width: 160px; max-height: 200px; }
+  .welcome-bg img:nth-child(3) { bottom: 12%; left: 10%; width: 20vw; height: 26vh; animation-delay: -6s; max-width: 200px; max-height: 260px; }
+  .welcome-bg img:nth-child(4) { bottom: 18%; right: 9%; width: 17vw; height: 22vh; animation-delay: -9s; max-width: 170px; max-height: 220px; }
+  .welcome-bg img:nth-child(5) { top: 45%; left: 2%; width: 12vw; height: 16vh; animation-delay: -4s;     max-width: 130px; max-height: 170px; opacity: 0.4; }
+  .welcome-bg img:nth-child(6) { top: 48%; right: 2%; width: 13vw; height: 17vh; animation-delay: -7s;    max-width: 140px; max-height: 180px; opacity: 0.4; }
+
+  @keyframes welcomeFloat {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-25px) rotate(2deg); }
+  }
+
+  .welcome-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 24px 20px;
+    max-width: 550px;
+    width: 90%;
+    background: rgba(15, 10, 6, 0.45);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 217, 102, 0.2);
+    border-radius: 24px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+  }
+  .welcome-subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+    color: #f0c674;
+    margin-bottom: 8px;
+    letter-spacing: 0.15em;
+  }
+  .welcome-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.8rem, 8vw, 5.2rem);
+    font-weight: 600;
+    line-height: 0.95;
+    color: #fff;
+    margin-bottom: 16px;
+    text-shadow: 0 0 50px rgba(255, 200, 80, 0.5);
+  }
+  .welcome-title em {
+    font-style: italic;
+    color: #ffd966;
+  }
+  .welcome-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1rem, 1.8vw, 1.2rem);
+    color: #d4c4a8;
+    margin-bottom: 25px;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+  }
+
+  /* PIN INPUT CONTAINER */
+  .pin-container {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .pin-box {
+    width: 50px;
+    height: 60px;
+    background: rgba(20, 12, 5, 0.7);
+    border: 2px solid rgba(255, 217, 102, 0.35);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: #ffd966;
+    outline: none;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
+  }
+  .pin-box:focus {
+    border-color: #ffd966;
+    box-shadow: 0 0 15px rgba(255, 217, 102, 0.5), inset 0 2px 6px rgba(0,0,0,0.5);
+    transform: translateY(-2px);
+  }
+  .pin-hint {
+    font-size: 0.75rem;
+    color: #a89575;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  .pin-error {
+    animation: shakeError 0.4s ease-in-out;
+    border-color: #ff5555 !important;
+  }
+  @keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
+
+  /* ============ UNIVERSE ============ */
+  .universe {
+    height: 340vh;
+    position: relative;
+    background: #0a0505;
+  }
+  .universe-inner {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: 100%;
+    overflow: hidden;
+    background: radial-gradient(ellipse at center, #1a0f05 0%, #0a0505 55%, #000 100%);
+    perspective: 1200px;
+  }
+
+  /* Partículas de fondo */
+  .particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: #ffd966;
+    box-shadow: 0 0 8px rgba(255, 217, 102, 0.8);
+    animation: twinkle 4s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.15; transform: scale(0.7); }
+    50%      { opacity: 0.85; transform: scale(1.15); }
+  }
+
+  /* Flor central */
+  .flower-wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(320px, 62vmin);
+    height: min(320px, 62vmin);
+    z-index: 2;
+    transform: translate(-50%, -50%) scale(0.65);
+    transform-origin: center center;
+    will-change: transform;
+    filter: drop-shadow(0 0 60px rgba(255, 200, 80, 0.55));
+  }
+  .flower-wrap svg {
+    width: 100%;
+    height: 100%;
+    animation: flowerRotate 90s linear infinite;
+  }
+  @keyframes flowerRotate {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* Cartas flotantes */
+  .card {
+    position: absolute;
+    width: 145px;
+    height: 195px;
+    cursor: pointer;
+    will-change: transform, opacity;
+    z-index: 1;
+    transform: translate(var(--px, 0px), var(--py, 0px));
+    transition: opacity 0.5s ease;
+  }
+  .card-float {
+    width: 100%;
+    height: 100%;
+    animation: cardFloat 7s ease-in-out infinite;
+    perspective: 1000px;
+  }
+  @keyframes cardFloat {
+    0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+    50%      { transform: translateY(-22px) rotate(1.5deg); }
+  }
+  .card-flip {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+  .card.flipped .card-flip { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 40px rgba(255, 200, 80, 0.18);
+  }
+  .card-front img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  .card:hover .card-front img { transform: scale(1.08); }
+  .card-front::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+  .card-back {
+    transform: rotateY(180deg);
+    background:
+      radial-gradient(circle at 30% 20%, rgba(255,255,255,0.45), transparent 40%),
+      linear-gradient(135deg, #fff8e1 0%, #ffe082 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 18px 14px;
+    text-align: center;
+    color: #4a2810;
+  }
+  .card-back::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(139, 90, 20, 0.25);
+    border-radius: 10px;
+    pointer-events: none;
+  }
+  .card-back p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.98rem;
+    line-height: 1.35;
+    font-weight: 600;
+  }
+  .card-back .flower-icon {
+    margin-top: 8px;
+    font-size: 1.1rem;
+    opacity: 0.85;
+  }
+
+  /* Posición desktop de cada carta */
+  .card:nth-child(1) { top: 8%;  left: 6%; }
+  .card:nth-child(2) { top: 10%; right: 5%; }
+  .card:nth-child(3) { top: 40%; left: 3%; }
+  .card:nth-child(4) { top: 42%; right: 3%; }
+  .card:nth-child(5) { bottom: 12%; left: 10%; }
+  .card:nth-child(6) { bottom: 10%; right: 8%; }
+  .card:nth-child(7) { bottom: 4%; left: 50%; transform: translateX(-50%); }
+
+  .card:nth-child(1) .card-float { animation-delay: 0s; }
+  .card:nth-child(2) .card-float { animation-delay: -1.2s; }
+  .card:nth-child(3) .card-float { animation-delay: -2.5s; }
+  .card:nth-child(4) .card-float { animation-delay: -3.3s; }
+  .card:nth-child(5) .card-float { animation-delay: -4.1s; }
+  .card:nth-child(6) .card-float { animation-delay: -5.2s; }
+  .card:nth-child(7) .card-float { animation-delay: -2.9s; }
+
+  .card.flipped {
+    z-index: 20;
+    transform: translate(var(--px, 0px), var(--py, 0px)) scale(1.35);
+    transition: transform 0.5s ease, opacity 0.5s ease;
+  }
+  .card.flipped .card-float { animation-play-state: paused; }
+
+  /* Blur cuando hay una carta abierta */
+  .universe-inner.has-open-card .flower-wrap,
+  .universe-inner.has-open-card .particles,
+  .universe-inner.has-open-card .card:not(.flipped) {
+    filter: blur(5px);
+    opacity: 0.3;
+    transition: filter 0.5s ease, opacity 0.5s ease;
+  }
+
+  /* Pista de scroll */
+  .scroll-hint {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffd966;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    letter-spacing: 0.1em;
+    text-align: center;
+    z-index: 3;
+    opacity: 0.85;
+    animation: bounceHint 2.5s ease-in-out infinite;
+    pointer-events: none;
+    transition: opacity 0.6s;
+  }
+  .scroll-hint svg {
+    display: block;
+    margin: 6px auto 0;
+    width: 18px;
+    height: 18px;
+  }
+  @keyframes bounceHint {
+    0%, 100% { transform: translate(-50%, 0); }
+    50%      { transform: translate(-50%, 8px); }
+  }
+
+  /* Mensaje final */
+  .final-message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 30px 20px;
+    z-index: 3;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+    background: radial-gradient(circle at center, rgba(10,5,5,0.8) 0%, rgba(10,5,5,0.96) 80%);
+  }
+  .final-message h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    color: #ffd966;
+    margin-bottom: 20px;
+    text-shadow: 0 0 40px rgba(255, 200, 80, 0.4);
+    line-height: 1.1;
+  }
+  .final-message p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+    color: #e8d8b8;
+    max-width: 580px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .final-message .sign {
+    margin-top: 24px;
+    font-size: 1.8rem;
+    animation: flowerRotate 20s linear infinite;
+    display: inline-block;
+  }
+
+  /* Toggle de música */
+  .music-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 217, 102, 0.1);
+    border: 1px solid rgba(255, 217, 102, 0.4);
+    color: #ffd966;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(6px);
+  }
+  .music-toggle:hover {
+    background: rgba(255, 217, 102, 0.25);
+    transform: scale(1.1);
+  }
+  .music-toggle svg { width: 20px; height: 20px; }
+
+  /* ============ RESPONSIVE (OPTIMIZADO PARA MÓVILES) ============ */
+  @media (max-width: 720px) {
+    .pin-box {
+      width: 44px;
+      height: 52px;
+      font-size: 1.4rem;
+    }
+    .welcome-content {
+      padding: 20px 16px;
+    }
+
+    .card { 
+      width: 105px; 
+      height: 145px; 
+    }
+    .card-back { 
+      padding: 10px 8px; 
+    }
+    .card-back p { 
+      font-size: 0.72rem; 
+      line-height: 1.3; 
+    }
+    .card-back .flower-icon { 
+      font-size: 0.85rem; 
+      margin-top: 4px; 
+    }
+
+    /* Redistribución limpia en pantallas móviles */
+    .card:nth-child(1) { top: 4%;  left: 3%; }
+    .card:nth-child(2) { top: 4%;  right: 3%; }
+    .card:nth-child(3) { top: 29%; left: 2%; }
+    .card:nth-child(4) { top: 29%; right: 2%; }
+    .card:nth-child(5) { bottom: 15%; left: 3%; }
+    .card:nth-child(6) { bottom: 15%; right: 3%; }
+    .card:nth-child(7) { bottom: 3%; left: 50%; transform: translateX(-50%); }
+
+    .card.flipped {
+      transform: translate(var(--px, 0px), var(--py, 0px)) scale(1.45);
+    }
+
+    .welcome-bg img:nth-child(5),
+    .welcome-bg img:nth-child(6) { display: none; }
+  }
+
+  @media (max-width: 380px) {
+    .card { width: 92px; height: 128px; }
+    .card-back p { font-size: 0.65rem; }
+    .pin-box { width: 38px; height: 48px; font-size: 1.2rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ PANTALLA DE BIENVENIDA CON INGRESAR DE PIN ============ -->
+<section class="welcome" id="welcome">
+  <div class="welcome-bg">
+    <!-- 👇 REEMPLAZA estas imágenes por las tuyas -->
+    <img src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400&q=80" alt="Flor 1">
+    <img src="https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400&q=80" alt="Flor 2">
+    <img src="https://images.unsplash.com/photo-1508610048659-a06b669e3321?w=400&q=80" alt="Flor 3">
+    <img src="https://images.unsplash.com/photo-1470509037663-253afd7f0f51?w=400&q=80" alt="Flor 4">
+    <img src="https://images.unsplash.com/photo-1562690868-60bbe7293e94?w=400&q=80" alt="Flor 5">
+    <img src="https://images.unsplash.com/photo-1502977249166-824b3a8a4d6d?w=400&q=80" alt="Flor 6">
+  </div>
+
+  <div class="welcome-content">
+    <p class="welcome-subtitle">Para ti, Alizon</p>
+    <h1 class="welcome-title">Flores<br><em>Amarillas</em></h1>
+    <p class="welcome-text">Ingresa el pin para ver lo que tengo preparado para ti 🌻</p>
+    
+    <!-- PIN INPUT BOXES -->
+    <div class="pin-container" id="pin-container">
+      <input type="password" maxlength="1" pattern="[0-9]*" inputmode="numeric" class="pin-box" autofocus>
+      <input type="password" maxlength="1" pattern="[0-9]*" inputmode="numeric" class="pin-box">
+      <input type="password" maxlength="1" pattern="[0-9]*" inputmode="numeric" class="pin-box">
+      <input type="password" maxlength="1" pattern="[0-9]*" inputmode="numeric" class="pin-box">
+    </div>
+    <p class="pin-hint">Ingresa el PIN de 4 dígitos</p>
+  </div>
+</section>
+
+<!-- ============ UNIVERSO DE LA FLOR AMARILLA ============ -->
+<section class="universe" id="universe">
+  <div class="universe-inner" id="universe-inner">
+
+    <div class="particles" id="particles"></div>
+
+    <!-- FLOR CENTRAL SVG -->
+    <div class="flower-wrap" id="flower-wrap">
+      <svg viewBox="0 0 400 400" id="flower-svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="petalGrad" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#FFE97A"/>
+            <stop offset="60%" stop-color="#FFC61A"/>
+            <stop offset="100%" stop-color="#E09400"/>
+          </radialGradient>
+          <radialGradient id="petalGrad2" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stop-color="#FFD24D"/>
+            <stop offset="100%" stop-color="#D17700"/>
+          </radialGradient>
+          <radialGradient id="centerGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#6B3A12"/>
+            <stop offset="100%" stop-color="#2E1405"/>
+          </radialGradient>
+        </defs>
+        <g transform="translate(200,200)">
+          <g class="petals"></g>
+          <g class="petals-inner"></g>
+          <circle r="55" fill="url(#centerGrad)"/>
+          <g class="seeds"></g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="cards-container" id="cards">
+      <div class="card">
+        <div class="card-float"><div class="card-flip">
+          <div class="card-face card-front"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4ZJO73LQdL4cKyMYYpCLGHS5M1iI8cpBdwm0rI4y6iBl0DWxjY19DCLY&s=10?w=400&q=80" alt="Recuerdo"></div>
+          <div class="card-face card-back"><p>Alizon, contigo hasta los lunes se sienten como viernes.</p><span class="flower-icon">🌻</span></div>
+        </div></div>
+      </div>
+      <div class="card">
+        <div class="card-float"><div class="card-flip">
+          <div class="card-face card-front"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqLmFrkfl4_Fd3kprjRdSCWppmPSBNgqDXHZZydXoU8WSK9ttiEOriyns&s=10?w=400&q=80" alt="Recuerdo"></div>
+          <div class="card-face card-back"><p>Eres mi flor amarilla favorita.</p><span class="flower-icon">🌻</span></div>
+        </div></div>
+      </div>
+      <div class="card">
+        <div class="card-float"><div class="card-flip">
+          <div class="card-face card-front"><img src="https://i.pinimg.com/736x/7b/c5/18/7bc5186cb2647f89269921d212c9adb6.jpg?w=400&q=80" alt="Recuerdo"></div>
+          <div class="card-face card-back"><p>Si las flores hablaran, Alizon, solo dirían tu nombre.</p><span class="flower-icon">🌻</span></div>
+        </div></div>
+      </div>
+      <div class="card">
+        <div class="card-float"><div class="card-flip">
+          <div class="card-face card-front"><img src="https://static.vecteezy.com/system/resources/previews/077/927/470/non_2x/cute-cartoon-goose-holding-a-bouquet-of-yellow-flowers-illustration-vector.jpg?w=400&q=80" alt="Recuerdo"></div>
+          <div class="card-face card-back"><p>No sé si esto sea magia, pero contigo todo florece.</p><span class="flower-icon">🌻</span></div>
+        </div></div>
+      </div>
+      <div class="card">
+        <div class="card-float"><div class="card-flip">
+          <div class="card-face card-front"><img src="image1.jpeg" alt="Recuerdo"></div>
+          <div class="card-face card-back"><p>Cada vez que pienso en ti, me sale una sonrisa sin querer.</p><span class="flower-icon">🌻</span></div>
+        </div></div>
+      </div>
+      <div class="card">
+        <div class="card-float"><div class="card-flip">
+          <div class="card-face card-front"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQnJ_hWZE3SRxDyQul4_alHbML2PMlZhQsbmNVoDw3NoS6NxEiN5o_psxU&s=10?w=400&q=80" alt="Recuerdo"></div>
+          <div class="card-face card-back"><p>Alizon, eres mi lugar bonito en medio de todo.</p><span class="flower-icon">🌻</span></div>
+        </div></div>
+      </div>
+      <div class="card">
+        <div class="card-float"><div class="card-flip">
+          <div class="card-face card-front"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS3Mky_fidVNaUoAqMLYteM1tGwVrar0So_XuQaXGxekVjfPllRHLBxFLY&s=10?w=400&q=80" alt="Recuerdo"></div>
+          <div class="card-face card-back"><p>Hay personas que llegan en el momento justo, tú eres una de ellas.</p><span class="flower-icon">🌻</span></div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- PISTA DE SCROLL -->
+    <div class="scroll-hint" id="scroll-hint">
+      Desliza hacia abajo para sumergirte
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </div>
+
+    <!-- MENSAJE FINAL PERSONALIZADO -->
+    <div class="final-message" id="final-message">
+      <h2>"Alizon, si algún día te preguntas cuánto te quiero..."</h2>
+      <p>Te regalo estas rosas que no se marchitan, algo que puedas conservar y recordar lo especial que eres para mi.</p>
+      <p><em>Gracias por coincidir conmigo.</em></p>
+      <span class="sign">🌻</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- BOTÓN MÚSICA OPCIONAL -->
+<button class="music-toggle" id="music-toggle" aria-label="Reproducir música" style="display:none;">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+  </svg>
+</button>
+<audio id="bg-music" loop>
+  <!-- <source src="tu-musica.mp3" type="audio/mpeg"> -->
+</audio>
+
+<script>
+/* ============================================================
+   1. CONSTRUCCIÓN DE LA FLOR DE GIRASOL (SVG)
+   ============================================================ */
+(function buildFlower() {
+  const svg = document.getElementById('flower-svg');
+  const ns = 'http://www.w3.org/2000/svg';
+  const petalsOuter = svg.querySelector('.petals');
+  const petalsInner = svg.querySelector('.petals-inner');
+  const seeds = svg.querySelector('.seeds');
+
+  const N = 16;
+  for (let i = 0; i < N; i++) {
+    const p = document.createElementNS(ns, 'ellipse');
+    p.setAttribute('cx', 0);
+    p.setAttribute('cy', -110);
+    p.setAttribute('rx', 22);
+    p.setAttribute('ry', 55);
+    p.setAttribute('fill', 'url(#petalGrad)');
+    p.setAttribute('transform', `rotate(${i * 360 / N})`);
+    petalsOuter.appendChild(p);
+  }
+  for (let i = 0; i < N; i++) {
+    const p = document.createElementNS(ns, 'ellipse');
+    p.setAttribute('cx', 0);
+    p.setAttribute('cy', -78);
+    p.setAttribute('rx', 16);
+    p.setAttribute('ry', 40);
+    p.setAttribute('fill', 'url(#petalGrad2)');
+    p.setAttribute('transform', `rotate(${i * 360 / N + 360 / (N * 2)})`);
+    petalsInner.appendChild(p);
+  }
+  for (let i = 0; i < 60; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = Math.sqrt(Math.random()) * 48;
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', Math.cos(a) * r);
+    c.setAttribute('cy', Math.sin(a) * r);
+    c.setAttribute('r', 1.4 + Math.random() * 0.8);
+    c.setAttribute('fill', '#150800');
+    c.setAttribute('opacity', 0.55);
+    seeds.appendChild(c);
+  }
+})();
+
+/* ============================================================
+   2. PARTÍCULAS DORADAS DE FONDO
+   ============================================================ */
+(function buildParticles() {
+  const container = document.getElementById('particles');
+  const count = window.innerWidth < 600 ? 30 : 55;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 1 + Math.random() * 2.5;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = Math.random() * 100 + '%';
+    p.style.animationDelay = (Math.random() * 4) + 's';
+    p.style.animationDuration = (3 + Math.random() * 3) + 's';
+    container.appendChild(p);
+  }
+})();
+
+/* ============================================================
+   3. SISTEMA DE PIN SEGURO (CORRECTO: 1999)
+   ============================================================ */
+const pinBoxes = document.querySelectorAll('.pin-box');
+const welcomeScreen = document.getElementById('welcome');
+const CORRECT_PIN = "1999";
+
+pinBoxes.forEach((box, index) => {
+  box.addEventListener('input', (e) => {
+    const value = e.target.value;
+    if (value.length === 1 && index < pinBoxes.length - 1) {
+      pinBoxes[index + 1].focus();
+    }
+    checkPin();
+  });
+
+  box.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !box.value && index > 0) {
+      pinBoxes[index - 1].focus();
+    }
+  });
+
+  // Asegura seleccionar solo números en móvil
+  box.addEventListener('paste', (e) => {
+    const paste = (e.clipboardData || window.clipboardData).getData('text');
+    if (paste.length === 4 && !isNaN(paste)) {
+      pinBoxes.forEach((b, i) => b.value = paste[i] || '');
+      checkPin();
+    }
+  });
+});
+
+function checkPin() {
+  const enteredPin = Array.from(pinBoxes).map(b => b.value).join('');
+  
+  if (enteredPin.length === 4) {
+    if (enteredPin === CORRECT_PIN) {
+      // PIN Correcto -> Transición fluida
+      pinBoxes.forEach(b => b.blur());
+      welcomeScreen.classList.add('hidden');
+      setTimeout(() => {
+        welcomeScreen.style.display = 'none';
+        document.body.classList.add('entered');
+        window.scrollTo(0, 0);
+      }, 900);
+    } else {
+      // PIN Incorrecto -> Animación de temblor
+      const pinContainer = document.getElementById('pin-container');
+      pinContainer.classList.add('pin-error');
+      pinBoxes.forEach(b => b.classList.add('pin-error'));
+      
+      setTimeout(() => {
+        pinContainer.classList.remove('pin-error');
+        pinBoxes.forEach(b => {
+          b.classList.remove('pin-error');
+          b.value = '';
+        });
+        pinBoxes[0].focus();
+      }, 600);
+    }
+  }
+}
+
+/* ============================================================
+   4. ZOOM DE LA FLOR & FADE DE CARTAS CON SCROLL
+   ============================================================ */
+const universe = document.getElementById('universe');
+const flowerWrap = document.getElementById('flower-wrap');
+const cardEls = document.querySelectorAll('.card');
+const finalMessage = document.getElementById('final-message');
+const scrollHint = document.getElementById('scroll-hint');
+
+function updateUniverse() {
+  const rect = universe.getBoundingClientRect();
+  const total = universe.offsetHeight - window.innerHeight;
+  const progress = Math.min(1, Math.max(0, -rect.top / total));
+
+  const scale = 0.65 + progress * 2.95;
+  flowerWrap.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+  const cardOpacity = Math.max(0, 1 - Math.max(0, progress - 0.2) / 0.42);
+  cardEls.forEach(c => {
+    if (!c.classList.contains('flipped')) {
+      c.style.opacity = cardOpacity;
+      c.style.pointerEvents = cardOpacity < 0.15 ? 'none' : 'auto';
+    }
+  });
+
+  scrollHint.style.opacity = progress < 0.08 ? 0.85 : 0;
+  finalMessage.style.opacity = Math.max(0, (progress - 0.72) / 0.28);
+}
+
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => { updateUniverse(); ticking = false; });
+    ticking = true;
+  }
+}, { passive: true });
+updateUniverse();
+
+/* ============================================================
+   5. EFECTO PARALLAX CON MOUSE EN ESCRITORIO
+   ============================================================ */
+document.addEventListener('mousemove', (e) => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 2;
+  const y = (e.clientY / window.innerHeight - 0.5) * 2;
+  cardEls.forEach((c, i) => {
+    if (c.classList.contains('flipped')) return;
+    const depth = ((i % 3) + 1) * 7;
+    c.style.setProperty('--px', `${x * depth}px`);
+    c.style.setProperty('--py', `${y * depth}px`);
+  });
+});
+
+/* ============================================================
+   6. ROTACIÓN Y ENFOQUE 3D DE LAS CARTAS (FLIP CARD)
+   ============================================================ */
+const universeInner = document.getElementById('universe-inner');
+
+cardEls.forEach(card => {
+  card.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (card.classList.contains('flipped')) {
+      card.classList.remove('flipped');
+      universeInner.classList.remove('has-open-card');
+      return;
+    }
+    cardEls.forEach(c => c.classList.remove('flipped'));
+    card.classList.add('flipped');
+    universeInner.classList.add('has-open-card');
+  });
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.card')) {
+    cardEls.forEach(c => c.classList.remove('flipped'));
+    universeInner.classList.remove('has-open-card');
+  }
+});
+
+/* ============================================================
+   7. MÚSICA DE FONDO (OPCIONAL)
+   ============================================================ */
+const audio = document.getElementById('bg-music');
+const musicBtn = document.getElementById('music-toggle');
+if (audio.querySelector('source')) {
+  musicBtn.style.display = 'flex';
+  musicBtn.addEventListener('click', () => {
+    if (audio.paused) { audio.play(); musicBtn.style.opacity = '1'; }
+    else { audio.pause(); musicBtn.style.opacity = '0.5'; }
+  });
+}
+
+/* ============================================================
+   8. REINICIAR SCROLL AL CARGAR
+   ============================================================ */
+window.addEventListener('load', () => {
+  window.scrollTo(0, 0);
+  pinBoxes[0].focus();
+});
+</script>
+</body>
+</html>
